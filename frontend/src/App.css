@@ -2,262 +2,342 @@
 html, body {
   margin: 0;
   padding: 0;
-  background-color: #ffffff;
-  color: #1e293b;
+  background-color: #f8fafc;
+  color: #0f172a;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-/* 仅顶部菜单栏允许模糊和左右50%圆角 */
-.top-navbar-container {
-  position: fixed;
-  top: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1000;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.top-navbar {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 24px;
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(37, 99, 235, 0.25);
-  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.12);
-  /* 左右两侧是 radius 50% 的圆角 (9999px / 50%) */
-  border-radius: 9999px;
-}
-
-/* 其余所有元素严格禁止圆角和模糊 */
 *, *::before, *::after {
   box-sizing: border-box;
 }
 
-:not(.top-navbar):not(.top-navbar *) {
-  border-radius: 0px !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
+/* 顶部悬浮导航容器 */
+.top-navbar-container {
+  position: sticky;
+  top: 12px;
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 16px;
+  width: 100%;
+  pointer-events: none;
 }
 
-/* 按钮通用动画样式：
-   按钮在不hover时是蓝色边框，hover时蓝色从左向右逐渐填充
-*/
-.custom-btn {
+/* 顶部 Tab 栏：无彩色阴影、添加模糊、胶囊形圆角、不换行 */
+.top-navbar {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
+  border-radius: 9999px;
+  max-width: 96vw;
+  overflow-x: auto;
+  white-space: nowrap;
+  flex-wrap: nowrap;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.top-navbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Tab 按钮样式：不换行、抗挤压 */
+.nav-tab-pill {
   position: relative;
   display: inline-flex;
   align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #64748b;
+  background-color: transparent;
+  user-select: none;
+  outline: none;
+}
+
+.nav-tab-pill:hover {
+  color: #1e293b;
+  background-color: rgba(241, 245, 249, 0.7);
+}
+
+/* 已选中状态：灰色胶囊形，严禁蓝色按钮，微弱内阴影增强质感 */
+.nav-tab-pill.active {
+  background-color: #e2e8f0;
+  color: #0f172a;
+  font-weight: 600;
+  border-color: rgba(203, 213, 225, 0.6);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.8), 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* 终端切换选择胶囊栏：同样灰色胶囊选中、不换行 */
+.terminal-selector-bar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  white-space: nowrap;
+  flex-wrap: nowrap;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 4px 0;
+}
+
+.terminal-selector-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.terminal-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 9999px;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  color: #475569;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.terminal-pill-btn:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+.terminal-pill-btn.active {
+  background-color: #e2e8f0;
+  color: #0f172a;
+  font-weight: 600;
+  border-color: #cbd5e1;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+/* 通用现代化卡片 */
+.glass-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 22px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.glass-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.06);
+}
+
+/* 按钮通用动画与样式 */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
+  gap: 8px;
   padding: 8px 18px;
   font-size: 14px;
   font-weight: 500;
-  color: #2563eb;
-  background-color: transparent;
-  border: 1px solid #2563eb;
+  color: #ffffff;
+  background-color: #0f172a;
+  border: 1px solid #0f172a;
+  border-radius: 8px;
   cursor: pointer;
-  overflow: hidden;
-  z-index: 1;
-  transition: color 0.3s ease;
+  transition: all 0.2s ease;
   user-select: none;
-  text-decoration: none;
 }
 
-.custom-btn::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 0%;
-  height: 100%;
-  background-color: #2563eb;
-  transition: width 0.3s ease;
-  z-index: -1;
+.btn-primary:hover {
+  background-color: #1e293b;
+  border-color: #1e293b;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15);
 }
 
-.custom-btn:hover {
-  color: #ffffff;
-}
-
-.custom-btn:hover::before {
-  width: 100%;
-}
-
-.custom-btn.active {
-  background-color: #2563eb;
-  color: #ffffff;
-}
-
-.custom-btn.active::before {
-  width: 100%;
-}
-
-/* 导航项按钮样式 */
-.nav-item-btn {
-  position: relative;
+.btn-secondary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 8px 20px;
-  font-size: 15px;
-  font-weight: 600;
-  color: #2563eb;
-  background-color: transparent;
-  border: 1px solid #2563eb;
+  gap: 8px;
+  padding: 8px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #334155;
+  background-color: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
   cursor: pointer;
-  overflow: hidden;
-  z-index: 1;
-  transition: color 0.3s ease;
+  transition: all 0.2s ease;
+  user-select: none;
 }
 
-.nav-item-btn::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 0%;
-  height: 100%;
-  background-color: #2563eb;
-  transition: width 0.3s ease;
-  z-index: -1;
+.btn-secondary:hover {
+  background-color: #e2e8f0;
+  color: #0f172a;
+  border-color: #94a3b8;
 }
 
-.nav-item-btn:hover {
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 18px;
+  font-size: 14px;
+  font-weight: 500;
   color: #ffffff;
+  background-color: #dc2626;
+  border: 1px solid #dc2626;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
 }
 
-.nav-item-btn:hover::before {
+.btn-danger:hover {
+  background-color: #b91c1c;
+  border-color: #b91c1c;
+}
+
+/* 数据表格 */
+.modern-table {
   width: 100%;
-}
-
-.nav-item-btn.active {
-  background-color: #2563eb;
-  color: #ffffff;
-}
-
-.nav-item-btn.active::before {
-  width: 100%;
-}
-
-/* 页面主体 */
-.page-container {
-  padding-top: 96px;
-  padding-bottom: 48px;
-  padding-left: 24px;
-  padding-right: 24px;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-/* 标题样式 */
-.section-title {
-  font-size: 20px;
-  font-weight: 700;
-  color: #1e3a8a;
-  border-left: 4px solid #2563eb;
-  padding-left: 12px;
-  margin-bottom: 20px;
-}
-
-/* 扁平无圆角卡片 */
-.flat-card {
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-top: 3px solid #2563eb;
-  padding: 24px;
-  margin-bottom: 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-}
-
-.data-table th, .data-table td {
-  padding: 12px 16px;
-  border: 1px solid #e2e8f0;
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: 14px;
 }
 
-.data-table th {
-  background-color: #eff6ff;
-  color: #1e40af;
+.modern-table th {
+  background-color: #f8fafc;
+  color: #475569;
   font-weight: 600;
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e2e8f0;
 }
 
-/* 火灾平面图容器 */
-.floor-plan-wrapper {
-  position: relative;
-  width: 100%;
-  overflow: auto;
-  border: 1px solid #cbd5e1;
+.modern-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #1e293b;
+}
+
+.modern-table tr:last-child td {
+  border-bottom: none;
+}
+
+.modern-table tr:hover td {
   background-color: #f8fafc;
 }
 
-.floor-plan-inner {
+/* 平面图容器与热点动效 */
+.floor-plan-box {
   position: relative;
-  display: inline-block;
-  min-width: 2056px;
-  min-height: 1080px;
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #cbd5e1;
+  background-color: #0f172a;
 }
 
-.floor-plan-image {
-  display: block;
-  width: 2056px;
-  height: 1080px;
-  max-width: none;
+.floor-plan-scroll-area {
+  position: relative;
+  width: 100%;
+  overflow: auto;
+  max-height: 720px;
 }
 
-/* 火灾中心标记 (不能使用 border-radius，所以使用菱形或十字准星方块) */
-.fire-point-marker {
+.fire-marker-pulse {
   position: absolute;
-  width: 24px;
-  height: 24px;
-  background-color: rgba(239, 68, 68, 0.85);
-  border: 2px solid #b91c1c;
-  transform: translate(-50%, -50%) rotate(45deg);
-  pointer-events: auto;
-  cursor: pointer;
-  animation: pulse-fire 1.5s infinite;
-}
-
-.fire-point-pulse {
-  position: absolute;
-  width: 44px;
-  height: 44px;
-  border: 2px solid #ef4444;
-  transform: translate(-50%, -50%) rotate(45deg);
+  width: 56px;
+  height: 56px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(239, 68, 68, 0.4) 0%, rgba(239, 68, 68, 0) 70%);
+  animation: fire-pulse-wave 2s infinite ease-out;
   pointer-events: none;
-  animation: ring-fire 1.5s infinite;
 }
 
-@keyframes pulse-fire {
-  0% { transform: translate(-50%, -50%) rotate(45deg) scale(0.9); }
-  50% { transform: translate(-50%, -50%) rotate(45deg) scale(1.15); }
-  100% { transform: translate(-50%, -50%) rotate(45deg) scale(0.9); }
-}
-
-@keyframes ring-fire {
-  0% { transform: translate(-50%, -50%) rotate(45deg) scale(0.6); opacity: 1; }
-  100% { transform: translate(-50%, -50%) rotate(45deg) scale(1.4); opacity: 0; }
-}
-
-.fire-tooltip {
+.fire-marker-core {
   position: absolute;
-  top: -38px;
+  width: 22px;
+  height: 22px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background-color: #ef4444;
+  border: 3px solid #ffffff;
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.9), 0 0 6px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  animation: fire-core-beat 1.2s infinite ease-in-out;
+  z-index: 10;
+}
+
+.fire-marker-tooltip {
+  position: absolute;
+  bottom: 130%;
   left: 50%;
   transform: translateX(-50%);
-  background-color: #1e293b;
+  background-color: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(8px);
   color: #ffffff;
-  padding: 4px 8px;
+  padding: 6px 12px;
   font-size: 12px;
+  border-radius: 6px;
   white-space: nowrap;
   pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 20;
+}
+
+.fire-marker-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: rgba(15, 23, 42, 0.92) transparent transparent transparent;
+}
+
+@keyframes fire-pulse-wave {
+  0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(2.2); opacity: 0; }
+}
+
+@keyframes fire-core-beat {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.22); }
+}
+
+/* 呼吸灯动画 */
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+.animate-live {
+  animation: live-pulse 1.8s infinite cubic-bezier(0.4, 0, 0.6, 1);
 }

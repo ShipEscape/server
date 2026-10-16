@@ -5,7 +5,7 @@ from starlette.websockets import WebSocket
 
 
 class WsManager:
-    """管理与手机的 WebSocket"""
+    """管理与手机的 WebSocket 连接"""
     def __init__(self):
         self.active_connections: set[WebSocket] = set()
 
