@@ -6,6 +6,8 @@ dependencies = [
     "aiofiles>=25.1.0",
     "fastapi>=0.143.0",
     "pydantic>=2.14.0",
+    "pyrefly>=0.60.0",
+    "starlette>=1.7.0",
     "uvicorn>=0.54.0",
     "websockets>=17.2",
 ]

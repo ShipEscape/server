@@ -1,0 +1,263 @@
+/* 全局重置与基础样式 */
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: #ffffff;
+  color: #1e293b;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 仅顶部菜单栏允许模糊和左右50%圆角 */
+.top-navbar-container {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.top-navbar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 24px;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(37, 99, 235, 0.25);
+  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.12);
+  /* 左右两侧是 radius 50% 的圆角 (9999px / 50%) */
+  border-radius: 9999px;
+}
+
+/* 其余所有元素严格禁止圆角和模糊 */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+:not(.top-navbar):not(.top-navbar *) {
+  border-radius: 0px !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* 按钮通用动画样式：
+   按钮在不hover时是蓝色边框，hover时蓝色从左向右逐渐填充
+*/
+.custom-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #2563eb;
+  background-color: transparent;
+  border: 1px solid #2563eb;
+  cursor: pointer;
+  overflow: hidden;
+  z-index: 1;
+  transition: color 0.3s ease;
+  user-select: none;
+  text-decoration: none;
+}
+
+.custom-btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0%;
+  height: 100%;
+  background-color: #2563eb;
+  transition: width 0.3s ease;
+  z-index: -1;
+}
+
+.custom-btn:hover {
+  color: #ffffff;
+}
+
+.custom-btn:hover::before {
+  width: 100%;
+}
+
+.custom-btn.active {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.custom-btn.active::before {
+  width: 100%;
+}
+
+/* 导航项按钮样式 */
+.nav-item-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #2563eb;
+  background-color: transparent;
+  border: 1px solid #2563eb;
+  cursor: pointer;
+  overflow: hidden;
+  z-index: 1;
+  transition: color 0.3s ease;
+}
+
+.nav-item-btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0%;
+  height: 100%;
+  background-color: #2563eb;
+  transition: width 0.3s ease;
+  z-index: -1;
+}
+
+.nav-item-btn:hover {
+  color: #ffffff;
+}
+
+.nav-item-btn:hover::before {
+  width: 100%;
+}
+
+.nav-item-btn.active {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.nav-item-btn.active::before {
+  width: 100%;
+}
+
+/* 页面主体 */
+.page-container {
+  padding-top: 96px;
+  padding-bottom: 48px;
+  padding-left: 24px;
+  padding-right: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* 标题样式 */
+.section-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e3a8a;
+  border-left: 4px solid #2563eb;
+  padding-left: 12px;
+  margin-bottom: 20px;
+}
+
+/* 扁平无圆角卡片 */
+.flat-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-top: 3px solid #2563eb;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.data-table th, .data-table td {
+  padding: 12px 16px;
+  border: 1px solid #e2e8f0;
+  font-size: 14px;
+}
+
+.data-table th {
+  background-color: #eff6ff;
+  color: #1e40af;
+  font-weight: 600;
+}
+
+/* 火灾平面图容器 */
+.floor-plan-wrapper {
+  position: relative;
+  width: 100%;
+  overflow: auto;
+  border: 1px solid #cbd5e1;
+  background-color: #f8fafc;
+}
+
+.floor-plan-inner {
+  position: relative;
+  display: inline-block;
+  min-width: 2056px;
+  min-height: 1080px;
+}
+
+.floor-plan-image {
+  display: block;
+  width: 2056px;
+  height: 1080px;
+  max-width: none;
+}
+
+/* 火灾中心标记 (不能使用 border-radius，所以使用菱形或十字准星方块) */
+.fire-point-marker {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  background-color: rgba(239, 68, 68, 0.85);
+  border: 2px solid #b91c1c;
+  transform: translate(-50%, -50%) rotate(45deg);
+  pointer-events: auto;
+  cursor: pointer;
+  animation: pulse-fire 1.5s infinite;
+}
+
+.fire-point-pulse {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  border: 2px solid #ef4444;
+  transform: translate(-50%, -50%) rotate(45deg);
+  pointer-events: none;
+  animation: ring-fire 1.5s infinite;
+}
+
+@keyframes pulse-fire {
+  0% { transform: translate(-50%, -50%) rotate(45deg) scale(0.9); }
+  50% { transform: translate(-50%, -50%) rotate(45deg) scale(1.15); }
+  100% { transform: translate(-50%, -50%) rotate(45deg) scale(0.9); }
+}
+
+@keyframes ring-fire {
+  0% { transform: translate(-50%, -50%) rotate(45deg) scale(0.6); opacity: 1; }
+  100% { transform: translate(-50%, -50%) rotate(45deg) scale(1.4); opacity: 0; }
+}
+
+.fire-tooltip {
+  position: absolute;
+  top: -38px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #1e293b;
+  color: #ffffff;
+  padding: 4px 8px;
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+}
