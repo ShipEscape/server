@@ -73,3 +73,12 @@ async def view_ws(ws: WebSocket, id: str):
 @router.get("/history/{id}", summary="历史曲线数据")
 async def history(id: str, start: int, end: int):
     return await asyncio.to_thread(tm.history, id, start, end)
+
+@router.post("/position/{id}", summary="设置终端位置")
+async def set_position(id: str, x: float, y: float):
+    tm.set_position(id, x, y)
+    return {"ok": True}
+
+@router.get("/alarms", summary="报警日志")
+async def alarms(id: str | None = None, limit: int = 50):
+    return await asyncio.to_thread(tm.alarms, id, limit)

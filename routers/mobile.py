@@ -9,14 +9,6 @@ from utils.WsManager import ws_manager
 
 router = APIRouter(prefix="/api/mobile", tags=["手机逃生客户端接口"])
 
-
-# TODO: 调试用
-@router.post("/modify", summary="修改 MobileFireData")
-async def report(data: MobileFireData):
-    await state_manager.update_mobile_fire_data(data)
-    return "success"
-
-
 @router.websocket("/ws")
 async def ws(websocket: WebSocket):
     await ws_manager.connect(websocket)

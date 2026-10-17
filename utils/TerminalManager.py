@@ -8,6 +8,9 @@ from pathlib import Path
 from pydantic import BaseModel, Field
 from starlette.websockets import WebSocket
 
+from utils.StateManager import MobileFireData
+from utils.StateManager import state_manager
+
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 DB_FILE = DATA_DIR / "terminal.db"
 OFFLINE_SEC = 70
@@ -49,6 +52,9 @@ class TerminalManager:
         cols = ", ".join(FIELDS)
         self.db.execute(f"CREATE TABLE IF NOT EXISTS telemetry(id TEXT, ts INTEGER, {cols}, PRIMARY KEY(id, ts))")
         self.db.execute("CREATE TABLE IF NOT EXISTS event(id TEXT, ts INTEGER, kind TEXT, path TEXT)")
+        self.db.execute("CREATE TABLE IF NOT EXISTS position(id TEXT PRIMARY KEY, x REAL, y REAL)")
+        self.pos = {i: (x, y) for i, x, y in self.db.execute("SELECT id, x, y FROM position")}
+
         have = {r[1] for r in self.db.execute("PRAGMA table_info(telemetry)")}
         for c in FIELDS:
             if c not in have:
@@ -62,6 +68,11 @@ class TerminalManager:
             row = dict(zip(FIELDS, v))
             row["persons"] = json.loads(row["persons"] or "[]")
             self.latest[id] = (ts, TerminalData(**row))
+
+    def set_position(self, id: str, x: float, y: float):
+        self.pos[id] = (x, y)
+        self.db.execute("INSERT OR REPLACE INTO position VALUES(?,?,?)", (id, x, y))
+        self.db.commit()
 
     # ---------- 状态数据 ----------
     def _save(self, id: str, ts: int, d: TerminalData, alert: bool):
@@ -84,6 +95,24 @@ class TerminalManager:
         self.latest[r.id] = (now, d)
         alert = d.fireAlert and not (old and old[1].fireAlert)   # 只在告警上升沿记事件
         await asyncio.to_thread(self._save, r.id, now, d, alert)
+        rise = d.fireAlert and not (old and old[1].fireAlert)
+        fall = bool(old and old[1].fireAlert) and not d.fireAlert
+        if rise or fall:
+            await asyncio.to_thread(self._event, r.id, now, "fire" if rise else "fire_end")
+            await self._sync_fire()
+
+    def _event(self, id: str, ts: int, kind: str):
+        self.db.execute("INSERT INTO event VALUES(?,?,?,?)", (id, ts, kind, None))
+        self.db.commit()
+
+    async def _sync_fire(self):
+        """任意终端在报警，全局就报警，火源坐标取第一个报警终端的位置"""
+        act = [i for i, (_, d) in self.latest.items() if d.fireAlert]
+        x, y = self.pos.get(act[0], (None, None)) if act else (None, None)
+        await state_manager.update_mobile_fire_data(MobileFireData(
+            alert=bool(act),
+            fireCenterX=None if x is None else int(x),
+            fireCenterY=None if y is None else int(y)))
 
     def ids(self) -> list[str]:
         return sorted(self.latest)
@@ -92,7 +121,8 @@ class TerminalManager:
         if id not in self.latest:
             return None
         seen, d = self.latest[id]
-        return {**d.model_dump(), "online": id in self.sockets or time.time() - seen < OFFLINE_SEC}
+        x, y = self.pos.get(id, (None, None))
+        return {**d.model_dump(), "x": x, "y": y, "online": id in self.sockets or time.time() - seen < OFFLINE_SEC}
 
     # ---------- 热成像高帧率 ----------
     async def set_live(self, id: str):
@@ -119,6 +149,20 @@ class TerminalManager:
             (step, step, id, start, end)).fetchall()
         cols = ["t", "thermalAvg", "voltage", "batteryPercent", "personCnt", "isAc"]
         return [dict(zip(cols, r)) for r in rows]
+
+    def alarms(self, id: str | None = None, limit: int = 50) -> list[dict]:
+        sql = "SELECT id, ts, kind, path FROM event WHERE kind IN ('fire','fire_end','thermal')"
+        rows = self.db.execute(sql + (" AND id=?" if id else "") + " ORDER BY ts", (id,) if id else ()).fetchall()
+        cur, out = {}, []
+        for tid, ts, kind, path in rows:
+            if kind == "fire":
+                cur[tid] = {"id": tid, "start": ts, "end": None, "images": []}
+                out.append(cur[tid])
+            elif tid in cur and kind == "fire_end":
+                cur.pop(tid)["end"] = ts
+            elif tid in cur and kind == "thermal":
+                cur[tid]["images"].append(path)
+        return out[::-1][:limit]
 
 
 terminal_manager = TerminalManager()
