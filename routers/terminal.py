@@ -1,4 +1,5 @@
 import asyncio
+import time
 
 from fastapi import APIRouter, HTTPException
 from starlette.websockets import WebSocket, WebSocketDisconnect
@@ -36,7 +37,7 @@ async def terminal_ws(ws: WebSocket, id: str):
     """终端连接：上行二进制热成像帧，下行 {"fps":n,"ttl":s} 指令"""
     await ws.accept()
     tm.sockets[id] = ws
-    await tm.set_fps(id)
+    await tm.set_live(id)
     try:
         while True:
             tm.push_frame(id, await ws.receive_bytes())
@@ -52,16 +53,23 @@ async def view_ws(ws: WebSocket, id: str):
     """观看端连接：转发热成像帧，并定期给终端续约"""
     await ws.accept()
     q = tm.add_viewer(id)
-    await tm.set_fps(id)
+    await tm.set_live(id)
+    last = time.monotonic()
     try:
         while True:
             try:
                 await ws.send_bytes(await asyncio.wait_for(q.get(), 10))
             except asyncio.TimeoutError:
-                await ws.send_text("ping")  # 同时探测连接是否还在
-                await tm.set_fps(id)  # 续约
+                await ws.send_text("ping")          # 没有帧时探测连接是否还在
+            if time.monotonic() - last > 10:        # 按时间续约，不依赖是否有帧
+                last = time.monotonic()
+                await tm.set_live(id)
     except Exception:
         pass
     finally:
         tm.viewers[id].discard(q)
-        await tm.set_fps(id)  # 无人观看则降速
+        await tm.set_live(id)
+
+@router.get("/history/{id}", summary="历史曲线数据")
+async def history(id: str, start: int, end: int):
+    return await asyncio.to_thread(tm.history, id, start, end)
