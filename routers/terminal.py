@@ -1,7 +1,8 @@
 import asyncio
 import time
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, UploadFile
+from pathlib import Path
 from starlette.websockets import WebSocket, WebSocketDisconnect
 
 from utils.TerminalManager import Report, terminal_manager as tm
@@ -69,6 +70,11 @@ async def view_ws(ws: WebSocket, id: str):
     finally:
         tm.viewers[id].discard(q)
         await tm.set_live(id)
+
+@router.post("/snapshot/{id}", summary="智能终端上传抓拍")
+async def snapshot(id: str, file: UploadFile, kind: str = "photo"):   # kind: photo / thermal
+    ext = Path(file.filename or "").suffix or ".jpg"
+    return {"path": tm.save_snapshot(id, kind, await file.read(), ext)}
 
 @router.get("/history/{id}", summary="历史曲线数据")
 async def history(id: str, start: int, end: int):

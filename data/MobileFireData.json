@@ -1,6 +1,6 @@
 {
-  "alert": true,
-  "fireCenterX": 811,
-  "fireCenterY": 492,
+  "alert": false,
+  "fireCenterX": null,
+  "fireCenterY": null,
   "fireIntensity": 1.0
 }

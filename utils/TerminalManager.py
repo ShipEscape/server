@@ -13,6 +13,7 @@ from utils.StateManager import state_manager
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 DB_FILE = DATA_DIR / "terminal.db"
+SNAP_DIR = DATA_DIR / "snapshots"
 OFFLINE_SEC = 70
 KEEP_DAYS = 30
 LEASE_TTL = 30
@@ -100,6 +101,16 @@ class TerminalManager:
         if rise or fall:
             await asyncio.to_thread(self._event, r.id, now, "fire" if rise else "fire_end")
             await self._sync_fire()
+
+    def save_snapshot(self, id: str, kind: str, data: bytes, ext: str) -> str:
+        ts = int(time.time() * 1000)
+        path = SNAP_DIR / id / f"{ts}{ext}"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(data)
+        rel = f"{id}/{path.name}"
+        self.db.execute("INSERT INTO event VALUES(?,?,?,?)", (id, ts // 1000, kind, rel))
+        self.db.commit()
+        return rel
 
     def _event(self, id: str, ts: int, kind: str):
         self.db.execute("INSERT INTO event VALUES(?,?,?,?)", (id, ts, kind, None))
