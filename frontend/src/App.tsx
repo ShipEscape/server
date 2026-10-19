@@ -260,7 +260,7 @@ interface Alarm {
 }
 
 const dur = (s: number) => s < 60 ? `${s} 秒` : s < 3600 ? `${Math.floor(s / 60)} 分 ${s % 60} 秒` : `${Math.floor(s / 3600)} 小时 ${Math.floor((s % 3600) / 60)} 分`;
-const PW = 2056, PH = 1080;                                  // 平面图原始分辨率
+const PW = 2242, PH = 596;                               // 平面图原始分辨率
 const at = (x: number, y: number) => ({left: `${(x / PW) * 100}%`, top: `${(y / PH) * 100}%`});
 
 /** 手机风格电池：充电时中间有闪电，图标和数字变绿 */
