@@ -6,16 +6,12 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, Dataset
 
-# ================= 配置 =================
-DATA_DIR = "./dataset_testDevice"  # 之前采集的 npz 文件夹
+DATA_DIR = "./dataset_testDevice"
 BATCH_SIZE = 16
 EPOCHS = 15
 LR = 0.001
-MAX_TEMP = 300.0  # 归一化基准最高温 (℃)
-# ========================================
+MAX_TEMP = 300.0
 
-
-# 1. 动态生成虚拟火斑的数据集 (修复类型为 float32)
 class ThermalFireDataset(Dataset):
 
     def __init__(self, file_paths):
@@ -25,12 +21,7 @@ class ThermalFireDataset(Dataset):
         return len(self.files)
 
     def _generate_synthetic_fire(self, h, w):
-        """
-        自适应多尺度火源生成器：
-        - 50% 概率：远距离微型火 (1~3 像素点源)
-        - 35% 概率：中距离初期火 (4~10 像素热斑)
-        - 15% 概率：近距离大火 (大面积热羽流)
-        """
+        """火源生成器"""
         y, x = np.ogrid[:h, :w]
         cx = random.randint(5, w - 6)
         cy = random.randint(5, h - 6)
@@ -38,21 +29,16 @@ class ThermalFireDataset(Dataset):
         mode = random.choices(["tiny", "medium", "large"], weights=[0.5, 0.35, 0.15])[0]
 
         if mode == "tiny":
-            # 【远距离小火源：1 ~ 3 个像素】
-            # 因未占满像素，读出的稀释等效温度约 75℃ ~ 150℃
             t_core = random.uniform(75.0, 150.0)
-            # sigma 极小，依靠镜头点扩散在 1~3 像素内衰减殆尽
             sigma_x = random.uniform(0.5, 1.0)
             sigma_y = random.uniform(0.5, 1.2)
 
         elif mode == "medium":
-            # 【中距离初期火：4 ~ 10 个像素】
             t_core = random.uniform(120.0, 260.0)
             sigma_x = random.uniform(1.0, 2.0)
-            sigma_y = random.uniform(1.2, 3.0)  # 微弱向上羽流
+            sigma_y = random.uniform(1.2, 3.0)
 
         else:
-            # 【近距离大火：大面积爆燃】
             t_core = random.uniform(200.0, 450.0)
             sigma_x = random.uniform(2.5, 5.0)
             sigma_y = random.uniform(3.5, 7.0)
@@ -80,14 +66,12 @@ class ThermalFireDataset(Dataset):
         # 固定物理温标归一化
         norm_img = np.clip(final_temp, 0.0, MAX_TEMP) / MAX_TEMP
 
-        # 【关键修复】显式加上 .float()，确保是 32 位单精度浮点数
         tensor_img = torch.from_numpy(norm_img).float().unsqueeze(0)  # (1, 62, 80)
         label = torch.tensor([is_fire], dtype=torch.float32)
 
         return tensor_img, label
 
 
-# 2. 面向 80x62 设计的超轻量 CNN (参数量仅约 1.5 万)
 class TinyFireNet(nn.Module):
 
     def __init__(self):
@@ -175,7 +159,6 @@ def main():
             f"Epoch [{epoch:02d}/{EPOCHS:02d}] 损失: {train_loss/len(train_files):.4f} | 验证准确率: {acc:.2f}%"
         )
 
-    # 4. 导出模型 (标准权重与便于嵌入式端部署的 ONNX 格式)
     torch.save(model.state_dict(), "fire_model.pth")
     dummy_input = torch.randn(1, 1, 62, 80).to(device)
     torch.onnx.export(
@@ -185,7 +168,7 @@ def main():
         input_names=["input"],
         output_names=["output"],
     )
-    print("[+] 训练完成！已生成权重: fire_model.pth 与 ONNX 模型: fire_model.onnx")
+    print("success")
 
 
 if __name__ == "__main__":

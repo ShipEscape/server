@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 if len(sys.argv) < 2:
-    print("使用方法: python render.py <npz文件路径>")
+    print("python render.py <npz文件路径>")
     sys.exit(1)
 
 file_path = sys.argv[1]

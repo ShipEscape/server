@@ -5,10 +5,8 @@ import time
 import numpy as np
 import websockets
 
-# ================= 配置 =================
 WS_URL = "ws://127.0.0.1:8080/api/terminal/view/testDevice"  # 目标服务地址与设备ID
 SAVE_DIR = "./dataset_testDevice"
-# ========================================
 
 os.makedirs(SAVE_DIR, exist_ok=True)
 

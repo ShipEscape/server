@@ -29,7 +29,7 @@ class TerminalData(BaseModel):
     # 毫米波
     personCnt: int = 0
     dotCnt: int = 0
-    persons: list[tuple[float, float]] = []   # [x 横向, y 距离]
+    persons: list[tuple[float, float]] = []  # [x 横向, y 距离]
     # 热成像统计
     fireAlert: bool = False
 
@@ -80,21 +80,21 @@ class TerminalManager:
         row = d.model_dump()
         row["persons"] = json.dumps(row["persons"])
         self.db.execute(f"INSERT OR REPLACE INTO telemetry VALUES(?,?,{','.join('?' * len(FIELDS))})",
-                        (id, ts // 5 * 5, *row.values()))        # 5 秒一桶，桶内保留最新
+                        (id, ts // 5 * 5, *row.values()))  # 5 秒一桶，桶内保留最新
         if alert:
             self.db.execute("INSERT INTO event VALUES(?,?,?,?)", (id, ts, "smoke", None))
-        if ts - self._clean_ts > 3600:                           # 每小时清理一次
+        if ts - self._clean_ts > 3600:  # 每小时清理一次
             self._clean_ts = ts
             self.db.execute("DELETE FROM telemetry WHERE ts < ?", (ts - KEEP_DAYS * 86400,))
         self.db.commit()
 
     async def report(self, r: Report):
         now = int(time.time())
-        patch = r.model_dump(exclude={"id"}, exclude_unset=True)   # 只合并上传了的 key
-        old = self.latest.get(r.id)                                # 不存在则自动添加
+        patch = r.model_dump(exclude={"id"}, exclude_unset=True)  # 只合并上传了的 key
+        old = self.latest.get(r.id)  # 不存在则自动添加
         d = (old[1] if old else TerminalData()).model_copy(update=patch)
         self.latest[r.id] = (now, d)
-        alert = d.fireAlert and not (old and old[1].fireAlert)   # 只在告警上升沿记事件
+        alert = d.fireAlert and not (old and old[1].fireAlert)  # 只在告警上升沿记事件
         await asyncio.to_thread(self._save, r.id, now, d, alert)
         rise = d.fireAlert and not (old and old[1].fireAlert)
         fall = bool(old and old[1].fireAlert) and not d.fireAlert
@@ -142,7 +142,7 @@ class TerminalManager:
             await ws.send_json({"live": bool(self.viewers[id]), "ttl": LEASE_TTL})
 
     def add_viewer(self, id: str) -> asyncio.Queue:
-        q = asyncio.Queue(maxsize=1)    # 只留最新帧，慢客户端自动丢旧帧
+        q = asyncio.Queue(maxsize=1)  # 只留最新帧，慢客户端自动丢旧帧
         self.viewers[id].add(q)
         return q
 
@@ -153,7 +153,7 @@ class TerminalManager:
             q.put_nowait(frame)
 
     def history(self, id: str, start: int, end: int, points: int = 300) -> list[dict]:
-        step = max(5, (end - start) // points // 5 * 5)  # 按时间桶聚合，最多约 300 个点
+        step = max(5, (end - start) // points // 5 * 5)
         rows = self.db.execute(
             "SELECT ts/?*? AS t, AVG(thermalAvg), AVG(voltage), AVG(batteryPercent), MAX(personCnt), AVG(isAc) "
             "FROM telemetry WHERE id=? AND ts BETWEEN ? AND ? GROUP BY t ORDER BY t",

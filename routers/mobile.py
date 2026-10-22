@@ -1,10 +1,7 @@
-import json
-
 from fastapi import APIRouter
 from fastapi import WebSocket
-from pydantic import BaseModel
 
-from utils.StateManager import MobileFireData, state_manager
+from utils.StateManager import state_manager
 from utils.WsManager import ws_manager
 
 router = APIRouter(prefix="/api/mobile", tags=["手机逃生客户端接口"])
